@@ -9,6 +9,8 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
+    "format:check": "prettier --check '.'",
+    "check": "pnpm run lint && pnpm run format:check",
     "preview": "vite preview",
     "preinstall": "corepack enable && npx only-allow pnpm",
     "lint-staged": "lint-staged",
