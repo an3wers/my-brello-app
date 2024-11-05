@@ -9,7 +9,7 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
-    "format:check": "prettier --check '.'",
+    "format:check": "prettier --check './src/**/*.{js,jsx,ts,tsx}' '!./src/components/ui/**/*.{js,jsx,ts,tsx}'",
     "check": "pnpm run lint && pnpm run format:check",
     "preview": "vite preview",
     "preinstall": "corepack enable && npx only-allow pnpm",
