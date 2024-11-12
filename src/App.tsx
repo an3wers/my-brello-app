@@ -8,6 +8,7 @@ import {
   NavigationMenuList,
   navigationMenuTriggerStyle,
 } from './components/ui/navigation-menu';
+import styles from './custom-scroll-style/styles.module.css';
 import { cn } from './lib/utils';
 
 function App() {
@@ -66,11 +67,10 @@ const Board = ({ className }: BoardProps) => {
         <header>
           <h1 className="text-3xl font-bold mb-6">Board</h1>
         </header>
-        <div className="grid grid-cols-12 gap-6">
+        <div className="grid grid-cols-12 gap-10">
           <div className="col-span-4">
             <KanbanColumn
               title="To Do"
-              color="blue"
               issues={[
                 { id: 'a8d2c2b1-3d4b-4f19-b915-4530d8f693d4', text: 'Set up project repository' },
                 {
@@ -100,7 +100,6 @@ const Board = ({ className }: BoardProps) => {
           <div className="col-span-4">
             <KanbanColumn
               title="In Progress"
-              color="purple"
               issues={[
                 { id: 'c3d3a66f-6eb5-46ec-a07e-c8436886272f', text: 'Develop Board component' },
               ]}
@@ -109,7 +108,6 @@ const Board = ({ className }: BoardProps) => {
           <div className="col-span-4">
             <KanbanColumn
               title="Done"
-              color="teal"
               issues={[
                 {
                   id: '843a6832-f9f2-43b1-bd6f-ef27b87f1b64',
@@ -159,27 +157,26 @@ interface Issue {
 interface KanbanColumnProps {
   className?: string;
   title: string;
-  color: string;
   issues: Issue[];
 }
 
-const mapCoolors: Record<string, string> = {
-  blue: 'bg-blue-100',
-  purple: 'bg-purple-100',
-  teal: 'bg-teal-100',
-};
-
-const KanbanColumn = ({ className, color, title, issues }: KanbanColumnProps) => {
+const KanbanColumn = ({ className, title, issues }: KanbanColumnProps) => {
   return (
-    <div className={cn('p-6 rounded space-y-6 h-[94%]', className, mapCoolors[color])}>
+    <div
+      className={cn(
+        'p-6 rounded space-y-6 bg-gray-50 border border-gray-100 h-[calc(100vh-160px)]',
+
+        className,
+      )}
+    >
       <h3 className="text-lg font-bold">{title}</h3>
-      <div className="flex flex-col gap-3 max-h-[84%] overflow-y-auto">
+      <div className={cn('flex flex-col gap-3 max-h-[84%] overflow-y-auto', styles.root)}>
         {issues.map((issue) => {
           return <KanbanCard key={issue.id} text={issue.text} />;
         })}
       </div>
       <div className="flex flex-col">
-        <Button variant="ghost">Add card</Button>
+        <Button variant="secondary">Add card</Button>
       </div>
     </div>
   );
