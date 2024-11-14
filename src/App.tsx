@@ -1,6 +1,7 @@
 import { FormEvent, useState } from 'react';
 
 import { DragDropContext, Draggable, Droppable, OnDragEndResponder } from '@hello-pangea/dnd';
+import { useUnit } from 'effector-react';
 import { CirclePlus, EllipsisVertical, Pencil, Trash, X } from 'lucide-react';
 import { nanoid } from 'nanoid';
 
@@ -17,12 +18,19 @@ import {
 import { Textarea } from './components/ui/textarea';
 import styles from './custom-scroll-style/styles.module.css';
 import { cn } from './lib/utils';
+import { $counter, incrementClicked } from './model';
+
+const Counter = () => {
+  const [counter, onIncrement] = useUnit([$counter, incrementClicked]);
+  return <Button onClick={onIncrement}>{counter}</Button>;
+};
 
 function App() {
   return (
     <div className="flex flex-col min-h-screen">
       <AppHeader />
       <main className={cn('w-full')}>
+        <Counter />
         <Board />
       </main>
     </div>
