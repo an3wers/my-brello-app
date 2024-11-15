@@ -1,3 +1,4 @@
+import { cardMove, listReorder } from '@/lib/utils';
 import { createEvent, createStore } from 'effector';
 import { nanoid } from 'nanoid';
 
@@ -45,6 +46,12 @@ export const cardEditClicked = createEvent<{
   card: KanbanCardForm;
 }>();
 export const cardDeleteClicked = createEvent<{ columnId: string; cardId: string }>();
+export const cardMoved = createEvent<{
+  fromColumnId: string;
+  toColumnId: string;
+  fromIndex: number;
+  toIndex: number;
+}>();
 
 // Stores
 export const $board = createStore<KanbanBoard>(INITIAL_BOARD);
@@ -89,4 +96,28 @@ $board.on(cardDeleteClicked, (board, { cardId, columnId }) => {
   });
 
   return updateBoard;
+});
+
+const cardMovedInTheColumn = cardMoved.filter({
+  fn: ({ fromColumnId, toColumnId }) => fromColumnId === toColumnId,
+});
+const cardMovedToAnotherColumn = cardMoved.filter({
+  fn: ({ fromColumnId, toColumnId }) => fromColumnId !== toColumnId,
+});
+
+$board.on(cardMovedInTheColumn, (board, { fromColumnId, fromIndex, toIndex }) => {
+  const updatedBoard = board.map((column) => {
+    if (column.id === fromColumnId) {
+      const updatedList = listReorder(column, fromIndex, toIndex);
+      return updatedList;
+    }
+
+    return column;
+  });
+
+  return updatedBoard;
+});
+
+$board.on(cardMovedToAnotherColumn, (board, { fromColumnId, toColumnId, fromIndex, toIndex }) => {
+  return cardMove(board, fromColumnId, toColumnId, fromIndex, toIndex);
 });

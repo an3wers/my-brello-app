@@ -1,5 +1,5 @@
-import { $board, boardUpdate } from '@/kanban/model';
-import { cardMove, cn, listReorder } from '@/lib/utils';
+import { $board, cardMoved } from '@/kanban/model';
+import { cn } from '@/lib/utils';
 import { DragDropContext, OnDragEndResponder } from '@hello-pangea/dnd';
 import { useUnit } from 'effector-react';
 
@@ -11,7 +11,7 @@ interface BoardProps {
 }
 
 export const Board = ({ className }: BoardProps) => {
-  const [board, setBoard] = useUnit([$board, boardUpdate]);
+  const [board, onCardMoved] = useUnit([$board, cardMoved]);
 
   const onDragEnd: OnDragEndResponder = ({ source, destination }) => {
     if (!destination) {
@@ -19,28 +19,12 @@ export const Board = ({ className }: BoardProps) => {
       return;
     }
 
-    const sourceId = source.droppableId;
-    const destinationId = destination.droppableId;
+    const fromColumnId = source.droppableId;
+    const toColumnId = destination.droppableId;
+    const fromIndex = source.index;
+    const toIndex = destination.index;
 
-    const insideTheSameColumn = sourceId === destinationId;
-
-    if (insideTheSameColumn) {
-      const column = board.find((column) => column.id === sourceId);
-      if (column) {
-        const reorderedList = listReorder(column, source.index, destination.index);
-        const updatedBoard = board.map((item) => (item.id === sourceId ? reorderedList : item));
-        setBoard(updatedBoard);
-      }
-    } else {
-      const updatedBoard = cardMove(
-        board,
-        sourceId,
-        destinationId,
-        source.index,
-        destination.index,
-      );
-      setBoard(updatedBoard);
-    }
+    onCardMoved({ fromColumnId, toColumnId, fromIndex, toIndex });
   };
 
   return (
