@@ -1,8 +1,10 @@
 import { useState } from 'react';
 
+import { KanbanNewCard, cardCreateClicked } from '@/kanban/model';
 import type { KanbanCard as KanbanCardType, KanbanList } from '@/kanban/types';
 import { cn } from '@/lib/utils';
 import { Droppable } from '@hello-pangea/dnd';
+import { useUnit } from 'effector-react';
 import { CirclePlus, EllipsisVertical } from 'lucide-react';
 
 import styles from '@/custom-scroll-style/styles.module.css';
@@ -15,21 +17,15 @@ interface KanbanColumnProps extends KanbanList {
   className?: string;
   children?: React.ReactNode;
   onUpdate: (updateList: KanbanList) => void;
-  onCreate: (card: KanbanCardType, columnId: string) => void;
 }
 
-export const KanbanColumn = ({
-  className,
-  title,
-  cards,
-  id,
-  onCreate,
-  onUpdate,
-}: KanbanColumnProps) => {
+export const KanbanColumn = ({ className, title, cards, id, onUpdate }: KanbanColumnProps) => {
+  const [onCreateCard] = useUnit([cardCreateClicked]);
+
   const [hasAddCard, setHasAddCard] = useState(false);
 
-  function onCardCreate(card: KanbanCardType) {
-    onCreate(card, id);
+  function onCardCreate(card: KanbanNewCard) {
+    onCreateCard({ card, columnId: id });
     setHasAddCard(false);
   }
 

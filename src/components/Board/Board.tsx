@@ -1,4 +1,4 @@
-import { $board, boardUpdate, cardCreateClicked } from '@/kanban/model';
+import { $board, boardUpdate } from '@/kanban/model';
 import { KanbanList } from '@/kanban/types';
 import { cardMove, cn, listReorder } from '@/lib/utils';
 import { DragDropContext, OnDragEndResponder } from '@hello-pangea/dnd';
@@ -13,7 +13,6 @@ interface BoardProps {
 
 export const Board = ({ className }: BoardProps) => {
   const [board, setBoard] = useUnit([$board, boardUpdate]);
-  const [onCreateCard] = useUnit([cardCreateClicked]);
 
   const onDragEnd: OnDragEndResponder = ({ source, destination }) => {
     if (!destination) {
@@ -64,7 +63,6 @@ export const Board = ({ className }: BoardProps) => {
                 cards={column.cards}
                 key={column.id}
                 id={column.id}
-                onCreate={(card) => onCreateCard({ card, columnId: column.id })}
               />
             ))}
           </div>

@@ -41,12 +41,9 @@ const INITIAL_BOARD: KanbanBoard = [
   },
 ];
 
-type CardCreatePaylod = {
-  card: KanbanCard;
-  columnId: string;
-};
+export type KanbanNewCard = Pick<KanbanCard, 'title'>;
 // Events
-export const cardCreateClicked = createEvent<CardCreatePaylod>();
+export const cardCreateClicked = createEvent<{ card: KanbanNewCard; columnId: string }>();
 export const boardUpdate = createEvent<KanbanBoard>();
 
 // Stores
@@ -60,7 +57,9 @@ $board.on(boardUpdate, (_, board) => board);
 $board.on(cardCreateClicked, (board, { card, columnId }) => {
   const updateBoard = board.map((column) => {
     if (column.id === columnId) {
-      return { ...column, cards: [...column.cards, card] };
+      const newCard = { ...card, id: nanoid() };
+
+      return { ...column, cards: [...column.cards, newCard] };
     }
     return column;
   });

@@ -1,16 +1,15 @@
 import { FormEvent, useState } from 'react';
 
-import { KanbanCard } from '@/kanban/types';
+import { KanbanNewCard } from '@/kanban/model';
 import { cn } from '@/lib/utils';
 import { X } from 'lucide-react';
-import { nanoid } from 'nanoid';
 
 import { Button } from '../ui/button';
 import { Textarea } from '../ui/textarea';
 
 interface KanbanCreateCardProps {
   className?: string;
-  onCreate: (card: KanbanCard) => void;
+  onCreate: (card: KanbanNewCard) => void;
   onCancel: () => void;
 }
 
@@ -24,7 +23,7 @@ export const KanbanCreateCard = ({ className, onCreate, onCancel }: KanbanCreate
 
   function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    onCreate({ id: nanoid(), title });
+    onCreate({ title });
     onReset();
   }
 
