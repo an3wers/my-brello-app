@@ -1,8 +1,10 @@
 import { useState } from 'react';
 
+import { cardDeleteClicked, cardEditClicked } from '@/kanban/model';
 import type { KanbanCard as KanbanCardType } from '@/kanban/types';
 import { cn } from '@/lib/utils';
 import { Draggable } from '@hello-pangea/dnd';
+import { useUnit } from 'effector-react';
 import { Pencil, Trash } from 'lucide-react';
 
 import { Button } from '../ui/button';
@@ -12,10 +14,11 @@ import { Textarea } from '../ui/textarea';
 interface KanbanCardProps extends KanbanCardType {
   className?: string;
   index: number;
-  onEdit: (card: KanbanCardType) => void;
-  onDelete: (cardId: string) => void;
+  columnId: string;
 }
-export const KanbanCard = ({ className, title, index, id, onEdit, onDelete }: KanbanCardProps) => {
+export const KanbanCard = ({ className, title, index, id, columnId }: KanbanCardProps) => {
+  const [onCardEdit, onCardDelete] = useUnit([cardEditClicked, cardDeleteClicked]);
+
   const [editTitle, setEditTitle] = useState(title);
   const [editMode, setEditMode] = useState(false);
 
@@ -25,7 +28,7 @@ export const KanbanCard = ({ className, title, index, id, onEdit, onDelete }: Ka
   }
 
   function onEditFinished() {
-    onEdit({ id, title: editTitle });
+    onCardEdit({ columnId, cardId: id, card: { title: editTitle } });
     onReset();
   }
 
@@ -62,7 +65,11 @@ export const KanbanCard = ({ className, title, index, id, onEdit, onDelete }: Ka
                   <Button size={'icon'} variant={'ghost'} onClick={() => setEditMode(true)}>
                     <Pencil className="text-gray-400" />
                   </Button>
-                  <Button size={'icon'} variant={'ghost'} onClick={() => onDelete(id)}>
+                  <Button
+                    size={'icon'}
+                    variant={'ghost'}
+                    onClick={() => onCardDelete({ columnId, cardId: id })}
+                  >
                     <Trash className="text-gray-400" />
                   </Button>
                 </div>

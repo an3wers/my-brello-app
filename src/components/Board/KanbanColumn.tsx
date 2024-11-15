@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
-import { KanbanNewCard, cardCreateClicked } from '@/kanban/model';
-import type { KanbanCard as KanbanCardType, KanbanList } from '@/kanban/types';
+import { KanbanCardForm, cardCreateClicked } from '@/kanban/model';
+import type { KanbanList } from '@/kanban/types';
 import { cn } from '@/lib/utils';
 import { Droppable } from '@hello-pangea/dnd';
 import { useUnit } from 'effector-react';
@@ -16,27 +16,16 @@ import { KanbanCreateCard } from './KanbanCreateCard';
 interface KanbanColumnProps extends KanbanList {
   className?: string;
   children?: React.ReactNode;
-  onUpdate: (updateList: KanbanList) => void;
 }
 
-export const KanbanColumn = ({ className, title, cards, id, onUpdate }: KanbanColumnProps) => {
+export const KanbanColumn = ({ className, title, cards, id }: KanbanColumnProps) => {
   const [onCreateCard] = useUnit([cardCreateClicked]);
 
   const [hasAddCard, setHasAddCard] = useState(false);
 
-  function onCardCreate(card: KanbanNewCard) {
+  function onCardCreate(card: KanbanCardForm) {
     onCreateCard({ card, columnId: id });
     setHasAddCard(false);
-  }
-
-  function onCardEdit(updatedCard: KanbanCardType) {
-    const updatedCards = cards.map((card) => (card.id === updatedCard.id ? updatedCard : card));
-    onUpdate({ id, title, cards: updatedCards });
-  }
-
-  function onCardDelete(cardId: string) {
-    const updatedCards = cards.filter((card) => card.id !== cardId);
-    onUpdate({ id, title, cards: updatedCards });
   }
 
   return (
@@ -78,16 +67,9 @@ export const KanbanColumn = ({ className, title, cards, id, onUpdate }: KanbanCo
                 {hasAddCard && (
                   <KanbanCreateCard onCreate={onCardCreate} onCancel={() => setHasAddCard(false)} />
                 )}
-                {cards.map(({ id, title }, index) => {
+                {cards.map(({ id: _id, title }, index) => {
                   return (
-                    <KanbanCard
-                      key={id}
-                      index={index}
-                      title={title}
-                      id={id}
-                      onDelete={onCardDelete}
-                      onEdit={onCardEdit}
-                    />
+                    <KanbanCard key={_id} index={index} title={title} id={_id} columnId={id} />
                   );
                 })}
                 {provided.placeholder}

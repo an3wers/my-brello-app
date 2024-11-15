@@ -1,6 +1,6 @@
 import { FormEvent, useState } from 'react';
 
-import { KanbanNewCard } from '@/kanban/model';
+import { KanbanCardForm } from '@/kanban/model';
 import { cn } from '@/lib/utils';
 import { X } from 'lucide-react';
 
@@ -9,7 +9,7 @@ import { Textarea } from '../ui/textarea';
 
 interface KanbanCreateCardProps {
   className?: string;
-  onCreate: (card: KanbanNewCard) => void;
+  onCreate: (card: KanbanCardForm) => void;
   onCancel: () => void;
 }
 

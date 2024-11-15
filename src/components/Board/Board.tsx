@@ -1,5 +1,4 @@
 import { $board, boardUpdate } from '@/kanban/model';
-import { KanbanList } from '@/kanban/types';
 import { cardMove, cn, listReorder } from '@/lib/utils';
 import { DragDropContext, OnDragEndResponder } from '@hello-pangea/dnd';
 import { useUnit } from 'effector-react';
@@ -44,13 +43,6 @@ export const Board = ({ className }: BoardProps) => {
     }
   };
 
-  function onColumnUpdate(updatedList: KanbanList) {
-    const updatedBoard = board.map((column) =>
-      column.id === updatedList.id ? updatedList : column,
-    );
-    setBoard(updatedBoard);
-  }
-
   return (
     <section className={cn('', className)}>
       <Container>
@@ -59,7 +51,6 @@ export const Board = ({ className }: BoardProps) => {
             {board.map((column) => (
               <KanbanColumn
                 title="In Progress"
-                onUpdate={onColumnUpdate}
                 cards={column.cards}
                 key={column.id}
                 id={column.id}

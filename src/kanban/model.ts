@@ -22,29 +22,29 @@ const INITIAL_BOARD: KanbanBoard = [
     id: nanoid(),
     title: 'To Do',
     cards: createRandomTaskList(10),
-    //  [
-    //   { id: nanoid(), title: 'Setup the Workplace' },
-    //   { id: nanoid(), title: 'Review opened issues' },
-    // ],
   },
   {
     id: nanoid(),
     title: 'In Progress',
     cards: createRandomTaskList(1),
-    //  [{ id: nanoid(), title: 'Implement Kanban feature' }],
   },
   {
     id: nanoid(),
     title: 'Done',
     cards: createRandomTaskList(30),
-    // [{ id: nanoid(), title: 'Initialized project' }],
   },
 ];
 
-export type KanbanNewCard = Pick<KanbanCard, 'title'>;
+export type KanbanCardForm = Pick<KanbanCard, 'title'>;
 // Events
-export const cardCreateClicked = createEvent<{ card: KanbanNewCard; columnId: string }>();
+export const cardCreateClicked = createEvent<{ card: KanbanCardForm; columnId: string }>();
 export const boardUpdate = createEvent<KanbanBoard>();
+export const cardEditClicked = createEvent<{
+  columnId: string;
+  cardId: string;
+  card: KanbanCardForm;
+}>();
+export const cardDeleteClicked = createEvent<{ columnId: string; cardId: string }>();
 
 // Stores
 export const $board = createStore<KanbanBoard>(INITIAL_BOARD);
@@ -60,6 +60,30 @@ $board.on(cardCreateClicked, (board, { card, columnId }) => {
       const newCard = { ...card, id: nanoid() };
 
       return { ...column, cards: [...column.cards, newCard] };
+    }
+    return column;
+  });
+
+  return updateBoard;
+});
+
+$board.on(cardEditClicked, (board, { card, cardId, columnId }) => {
+  const updateBoard = board.map((column) => {
+    if (column.id === columnId) {
+      const updatedCards = column.cards.map((c) => (c.id === cardId ? { ...c, ...card } : c));
+      return { ...column, cards: updatedCards };
+    }
+    return column;
+  });
+
+  return updateBoard;
+});
+
+$board.on(cardDeleteClicked, (board, { cardId, columnId }) => {
+  const updateBoard = board.map((column) => {
+    if (column.id === columnId) {
+      const updatedCards = column.cards.filter((c) => c.id !== cardId);
+      return { ...column, cards: updatedCards };
     }
     return column;
   });
