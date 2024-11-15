@@ -1,4 +1,4 @@
-import { KanbanBoard, KanbanList } from '@/types/types';
+import { KanbanBoard, KanbanList } from '@/kanban/types';
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 

@@ -1,57 +1,19 @@
-import { useState } from 'react';
-
+import { $board, boardUpdate, cardCreateClicked } from '@/kanban/model';
+import { KanbanList } from '@/kanban/types';
 import { cardMove, cn, listReorder } from '@/lib/utils';
-import { KanbanBoard, KanbanCard, KanbanList } from '@/types/types';
 import { DragDropContext, OnDragEndResponder } from '@hello-pangea/dnd';
-import { nanoid } from 'nanoid';
+import { useUnit } from 'effector-react';
 
 import { Container } from '../ui/container';
 import { KanbanColumn } from './KanbanColumn';
-
-const TASK_NAMES = [
-  'Set up development environment',
-  // Here 48 more available task names
-  'Add task grouping by category functionality',
-];
-
-function randomTaskName() {
-  return TASK_NAMES[Math.floor(Math.random() * TASK_NAMES.length)];
-}
-
-function createRandomTaskList(amount: number): KanbanCard[] {
-  return Array.from({ length: amount }, () => ({ id: nanoid(), title: randomTaskName() }));
-}
-
-const INITIAL_BOARD: KanbanBoard = [
-  {
-    id: nanoid(),
-    title: 'To Do',
-    cards: createRandomTaskList(10),
-    //  [
-    //   { id: nanoid(), title: 'Setup the Workplace' },
-    //   { id: nanoid(), title: 'Review opened issues' },
-    // ],
-  },
-  {
-    id: nanoid(),
-    title: 'In Progress',
-    cards: createRandomTaskList(1),
-    //  [{ id: nanoid(), title: 'Implement Kanban feature' }],
-  },
-  {
-    id: nanoid(),
-    title: 'Done',
-    cards: createRandomTaskList(30),
-    // [{ id: nanoid(), title: 'Initialized project' }],
-  },
-];
 
 interface BoardProps {
   className?: string;
 }
 
 export const Board = ({ className }: BoardProps) => {
-  const [board, setBoard] = useState(INITIAL_BOARD);
+  const [board, setBoard] = useUnit([$board, boardUpdate]);
+  const [onCreateCard] = useUnit([cardCreateClicked]);
 
   const onDragEnd: OnDragEndResponder = ({ source, destination }) => {
     if (!destination) {
@@ -83,18 +45,6 @@ export const Board = ({ className }: BoardProps) => {
     }
   };
 
-  function onCreateCard(card: KanbanCard, columnId: string) {
-    const updatedBoard = board.map((column) => {
-      if (column.id === columnId) {
-        return { ...column, cards: [...column.cards, card] };
-      }
-
-      return column;
-    });
-
-    setBoard(updatedBoard);
-  }
-
   function onColumnUpdate(updatedList: KanbanList) {
     const updatedBoard = board.map((column) =>
       column.id === updatedList.id ? updatedList : column,
@@ -114,7 +64,7 @@ export const Board = ({ className }: BoardProps) => {
                 cards={column.cards}
                 key={column.id}
                 id={column.id}
-                onCreate={onCreateCard}
+                onCreate={(card) => onCreateCard({ card, columnId: column.id })}
               />
             ))}
           </div>
@@ -123,9 +73,3 @@ export const Board = ({ className }: BoardProps) => {
     </section>
   );
 };
-
-/*
-createCardElement={
-                  <KanbanCreateCard onCreate={(card) => onCreateCard(card, column.id)} />
-                }
-*/

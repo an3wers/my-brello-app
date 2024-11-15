@@ -1,7 +1,7 @@
 import { FormEvent, useState } from 'react';
 
+import { KanbanCard } from '@/kanban/types';
 import { cn } from '@/lib/utils';
-import { KanbanCard } from '@/types/types';
 import { X } from 'lucide-react';
 import { nanoid } from 'nanoid';
 

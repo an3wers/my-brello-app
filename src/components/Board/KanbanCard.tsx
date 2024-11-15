@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
+import type { KanbanCard as KanbanCardType } from '@/kanban/types';
 import { cn } from '@/lib/utils';
-import type { KanbanCard as KanbanCardType } from '@/types/types';
 import { Draggable } from '@hello-pangea/dnd';
 import { Pencil, Trash } from 'lucide-react';
 

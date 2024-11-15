@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
+import type { KanbanCard as KanbanCardType, KanbanList } from '@/kanban/types';
 import { cn } from '@/lib/utils';
-import type { KanbanCard as KanbanCardType, KanbanList } from '@/types/types';
 import { Droppable } from '@hello-pangea/dnd';
 import { CirclePlus, EllipsisVertical } from 'lucide-react';
 
