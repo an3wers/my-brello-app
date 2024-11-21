@@ -34,10 +34,11 @@ export const Board = ({ className }: BoardProps) => {
           <div className="flex flex-row gap-6 overflow-x-auto pb-2">
             {board.map((column) => (
               <KanbanColumn
-                title="In Progress"
+                id={column.id}
+                title={column.title}
                 cards={column.cards}
                 key={column.id}
-                id={column.id}
+                color={column.color}
               />
             ))}
           </div>

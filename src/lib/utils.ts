@@ -1,4 +1,4 @@
-import { KanbanBoard, KanbanList } from '@/kanban/types';
+import { ColorsColumn, KanbanBoard, KanbanList } from '@/kanban/types';
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -55,3 +55,5 @@ export function listReorder(list: KanbanList, startIndex: number, endIndex: numb
 
   return { ...list, cards };
 }
+
+export const getColumnColors = () => Object.values(ColorsColumn);

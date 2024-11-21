@@ -17,7 +17,7 @@ export const AppHeader = ({ className }: AppHeaderProps) => {
     <header className={cn('', className)}>
       <Container className="py-6 flex items-center gap-6">
         <div>
-          <p className="text-xl font-bold uppercase">My Board</p>
+          <p className="text-xl font-medium uppercase">My Board</p>
         </div>
         <NavigationMenu>
           <NavigationMenuList>

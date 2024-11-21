@@ -58,23 +58,23 @@ export const KanbanCard = ({ className, title, index, id, columnId }: KanbanCard
             {...provided.dragHandleProps}
             className={cn('', snapshot.isDragging ? 'border-gray-800 shadow-lg' : null, className)}
           >
-            <CardHeader className="p-4">
+            <CardHeader>
               <CardTitle className="text-sm">{title}</CardTitle>
-              <CardContent className="p-0">
-                <div className="flex gap-2 justify-end mt-2">
-                  <Button size={'icon'} variant={'ghost'} onClick={() => setEditMode(true)}>
-                    <Pencil className="text-gray-400" />
-                  </Button>
-                  <Button
-                    size={'icon'}
-                    variant={'ghost'}
-                    onClick={() => onCardDelete({ columnId, cardId: id })}
-                  >
-                    <Trash className="text-gray-400" />
-                  </Button>
-                </div>
-              </CardContent>
             </CardHeader>
+            <CardContent>
+              <div className="flex gap-2 justify-end mt-2">
+                <Button size={'icon'} variant={'ghost'} onClick={() => setEditMode(true)}>
+                  <Pencil className="text-gray-400" />
+                </Button>
+                <Button
+                  size={'icon'}
+                  variant={'ghost'}
+                  onClick={() => onCardDelete({ columnId, cardId: id })}
+                >
+                  <Trash className="text-gray-400" />
+                </Button>
+              </div>
+            </CardContent>
           </Card>
         );
       }}

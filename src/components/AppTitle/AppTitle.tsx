@@ -1,3 +1,3 @@
 export const AppTitle = ({ title }: { title: string }) => {
-  return <h1 className="text-3xl font-bold mb-6">{title}</h1>;
+  return <h1 className="text-2xl font-medium mb-6">{title}</h1>;
 };

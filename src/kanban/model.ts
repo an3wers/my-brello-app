@@ -2,7 +2,7 @@ import { cardMove, listReorder } from '@/lib/utils';
 import { createEvent, createStore } from 'effector';
 import { nanoid } from 'nanoid';
 
-import { KanbanBoard, KanbanCard } from './types';
+import { ColorsColumnType, KanbanBoard, KanbanCard } from './types';
 
 const TASK_NAMES = [
   'Set up development environment',
@@ -23,16 +23,19 @@ const INITIAL_BOARD: KanbanBoard = [
     id: nanoid(),
     title: 'To Do',
     cards: createRandomTaskList(10),
+    color: 'gray',
   },
   {
     id: nanoid(),
     title: 'In Progress',
     cards: createRandomTaskList(1),
+    color: 'gray',
   },
   {
     id: nanoid(),
     title: 'Done',
     cards: createRandomTaskList(30),
+    color: 'gray',
   },
 ];
 
@@ -40,6 +43,7 @@ export type KanbanCardForm = Pick<KanbanCard, 'title'>;
 // Events
 export const cardCreateClicked = createEvent<{ card: KanbanCardForm; columnId: string }>();
 export const boardUpdate = createEvent<KanbanBoard>();
+export const boardUpdatedColor = createEvent<{ columnId: string; color: ColorsColumnType }>();
 export const cardEditClicked = createEvent<{
   columnId: string;
   cardId: string;
@@ -96,6 +100,16 @@ $board.on(cardDeleteClicked, (board, { cardId, columnId }) => {
   });
 
   return updateBoard;
+});
+
+$board.on(boardUpdatedColor, (board, { columnId, color }) => {
+  const updatedBoard = board.map((column) => {
+    if (column.id === columnId) {
+      return { ...column, color };
+    }
+    return column;
+  });
+  return updatedBoard;
 });
 
 const cardMovedInTheColumn = cardMoved.filter({

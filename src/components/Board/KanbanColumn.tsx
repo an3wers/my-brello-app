@@ -1,25 +1,32 @@
 import { useState } from 'react';
 
-import { KanbanCardForm, cardCreateClicked } from '@/kanban/model';
+import { KanbanCardForm, boardUpdatedColor, cardCreateClicked } from '@/kanban/model';
 import type { KanbanList } from '@/kanban/types';
-import { cn } from '@/lib/utils';
+import { cn, getColumnColors } from '@/lib/utils';
 import { Droppable } from '@hello-pangea/dnd';
 import { useUnit } from 'effector-react';
 import { CirclePlus, EllipsisVertical } from 'lucide-react';
 
-import styles from '@/custom-scroll-style/styles.module.css';
+import stylesScroll from '@/custom-scroll-style/styles.module.css';
 
 import { Button } from '../ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from '../ui/dropdown-menu';
 import { KanbanCard } from './KanbanCard';
 import { KanbanCreateCard } from './KanbanCreateCard';
+import stylesBoard from './board.module.css';
 
 interface KanbanColumnProps extends KanbanList {
   className?: string;
   children?: React.ReactNode;
 }
 
-export const KanbanColumn = ({ className, title, cards, id }: KanbanColumnProps) => {
-  const [onCreateCard] = useUnit([cardCreateClicked]);
+export const KanbanColumn = ({ className, title, cards, id, color }: KanbanColumnProps) => {
+  const [onCreateCard, onUpdateColor] = useUnit([cardCreateClicked, boardUpdatedColor]);
 
   const [hasAddCard, setHasAddCard] = useState(false);
 
@@ -37,17 +44,40 @@ export const KanbanColumn = ({ className, title, cards, id }: KanbanColumnProps)
               ref={provided.innerRef}
               {...provided.droppableProps}
               className={cn(
-                'p-6 space-y-6 bg-gray-50 border flex flex-col w-[340px]',
+                'p-6 space-y-6 flex flex-col w-[320px] bg-opacity-20',
+                stylesBoard[color],
                 className,
-                styles.root,
+                stylesScroll.root,
               )}
             >
               <div className="flex justify-between gap-2">
-                <h3 className="text-lg font-bold">{title}</h3>
+                <h3 className="text-lg font-medium">{title}</h3>
                 <div className="flex">
-                  <Button size={'icon'} variant={'ghost'}>
-                    <EllipsisVertical className="text-gray-400" />
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button size={'icon'} variant={'ghost'}>
+                        <EllipsisVertical className="text-gray-400" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-40">
+                      <DropdownMenuLabel>Colors</DropdownMenuLabel>
+                      <div className="p-2">
+                        {getColumnColors().map((color) => {
+                          return (
+                            <span
+                              onClick={() => onUpdateColor({ columnId: id, color })}
+                              key={color}
+                              className={cn(
+                                'h-4 w-4 rounded-full border inline-block mr-2 bg-opacity-60 cursor-pointer',
+                                stylesBoard[color],
+                              )}
+                            ></span>
+                          );
+                        })}
+                      </div>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+
                   <Button
                     onClick={() => setHasAddCard(!hasAddCard)}
                     size={'icon'}
@@ -61,7 +91,7 @@ export const KanbanColumn = ({ className, title, cards, id }: KanbanColumnProps)
               <div
                 className={cn(
                   'flex flex-col gap-2 py-2 max-h-[calc(100vh-290px)] -mx-2 px-2 overflow-y-auto',
-                  styles.root,
+                  stylesScroll.root,
                 )}
               >
                 {hasAddCard && (
