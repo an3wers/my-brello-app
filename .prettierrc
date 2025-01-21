@@ -5,9 +5,14 @@
   "tabWidth": 2,
   "printWidth": 100,
   "bracketSpacing": true,
-  "plugins": ["@trivago/prettier-plugin-sort-imports"],
+  "plugins": [
+    "@trivago/prettier-plugin-sort-imports"
+  ],
   "importOrderGroupNamespaceSpecifiers": true,
-  "importOrderParserPlugins": ["typescript", "jsx"],
+  "importOrderParserPlugins": [
+    "typescript",
+    "jsx"
+  ],
   "importOrderSortSpecifiers": true,
   "importOrderSeparation": true,
   "importOrder": [
