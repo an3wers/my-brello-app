@@ -22,3 +22,33 @@
 - shadcn/ui готовые компоненты интерфейса,
 - Effector для управления состоянием,
 - Supabase в качестве Auth, Database, Realtime.
+
+## Пример работы с Macke файлом
+
+`make db.migrations.new name=add_sort_order_for_cards`
+
+## Работа с supabese
+
+**Первые шаги:**
+
+**Генерация типов:**
+
+`pnpm supabase gen types typescript --local > ./src/shared/api/database.types.ts`
+
+При необходимости форматируем: `pnpm prettier --write ./src/shared/api/database.types.ts`
+
+_Или: `make db.types.generate`_
+
+**Создаие миграции:**
+
+`pnpm supabase migration new add_lists_and_cards_tables`
+
+**Применить миграцию:**
+
+`pnpm supabase migration up --local`
+
+_Флаг --local применяет миграции локально не синхронизируя с онлайн инстансом на supabase.com._
+
+**Генерируем TypeScript описание таблиц для Supabase Client:**
+
+`pnpm supabase gen types typescript --local > ./src/shared/api/database.types.ts`
