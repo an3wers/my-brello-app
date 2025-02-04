@@ -1,11 +1,11 @@
 import { FormEvent, useState } from 'react';
 
-import { KanbanCardForm } from '@/kanban/model';
 import { cn } from '@/lib/utils';
+import { KanbanCardForm } from '@/pages/kanban/model';
 import { X } from 'lucide-react';
 
-import { Button } from '../ui/button';
-import { Textarea } from '../ui/textarea';
+import { Button } from '../../../components/ui/button';
+import { Textarea } from '../../../components/ui/textarea';
 
 interface KanbanCreateCardProps {
   className?: string;

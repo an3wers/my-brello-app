@@ -58,7 +58,8 @@ export const cardMoved = createEvent<{
 }>();
 
 // Stores
-export const $board = createStore<KanbanBoard>(INITIAL_BOARD);
+// export const $board = createStore<KanbanBoard>(INITIAL_BOARD);
+export const $board = createStore<KanbanBoard>([]);
 
 // Logic
 $board.on(boardUpdate, (_, board) => board);

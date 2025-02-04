@@ -1,4 +1,4 @@
-import { ColorsColumn, KanbanBoard, KanbanList } from '@/kanban/types';
+import { ColorsColumn, KanbanBoard, KanbanList } from '@/pages/kanban/types';
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 

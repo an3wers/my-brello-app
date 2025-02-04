@@ -1,15 +1,15 @@
 import { useState } from 'react';
 
-import { cardDeleteClicked, cardEditClicked } from '@/kanban/model';
-import type { KanbanCard as KanbanCardType } from '@/kanban/types';
 import { cn } from '@/lib/utils';
+import { cardDeleteClicked, cardEditClicked } from '@/pages/kanban/model';
+import type { KanbanCard as KanbanCardType } from '@/pages/kanban/types';
 import { Draggable } from '@hello-pangea/dnd';
 import { useUnit } from 'effector-react';
 import { Pencil, Trash } from 'lucide-react';
 
-import { Button } from '../ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Textarea } from '../ui/textarea';
+import { Button } from '../../../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
+import { Textarea } from '../../../components/ui/textarea';
 
 interface KanbanCardProps extends KanbanCardType {
   className?: string;

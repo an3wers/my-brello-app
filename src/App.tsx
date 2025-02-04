@@ -1,9 +1,9 @@
 import { AppHeader } from '@/components/AppHeader/AppHeader';
 
 import { AppTitle } from './components/AppTitle/AppTitle';
-import { Board } from './components/Board/Board';
 import { Container } from './components/ui/container';
 import { cn } from './lib/utils';
+import { Board } from './pages/kanban/ui/Board';
 
 function App() {
   return (

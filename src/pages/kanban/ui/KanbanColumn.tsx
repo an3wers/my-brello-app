@@ -1,21 +1,21 @@
 import { useState } from 'react';
 
-import { KanbanCardForm, boardUpdatedColor, cardCreateClicked } from '@/kanban/model';
-import type { KanbanList } from '@/kanban/types';
 import { cn, getColumnColors } from '@/lib/utils';
+import { KanbanCardForm, boardUpdatedColor, cardCreateClicked } from '@/pages/kanban/model';
+import type { KanbanList } from '@/pages/kanban/types';
 import { Droppable } from '@hello-pangea/dnd';
 import { useUnit } from 'effector-react';
 import { CirclePlus, EllipsisVertical } from 'lucide-react';
 
 import stylesScroll from '@/custom-scroll-style/styles.module.css';
 
-import { Button } from '../ui/button';
+import { Button } from '../../../components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuLabel,
   DropdownMenuTrigger,
-} from '../ui/dropdown-menu';
+} from '../../../components/ui/dropdown-menu';
 import { KanbanCard } from './KanbanCard';
 import { KanbanCreateCard } from './KanbanCreateCard';
 import stylesBoard from './board.module.css';

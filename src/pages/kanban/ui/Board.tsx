@@ -1,9 +1,9 @@
-import { $board, cardMoved } from '@/kanban/model';
 import { cn } from '@/lib/utils';
+import { $board, cardMoved } from '@/pages/kanban/model';
 import { DragDropContext, OnDragEndResponder } from '@hello-pangea/dnd';
 import { useUnit } from 'effector-react';
 
-import { Container } from '../ui/container';
+import { Container } from '../../../components/ui/container';
 import { KanbanColumn } from './KanbanColumn';
 
 interface BoardProps {
