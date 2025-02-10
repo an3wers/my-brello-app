@@ -59,16 +59,19 @@ export type Database = {
       };
       lists: {
         Row: {
+          color: string;
           created_at: string;
           id: string;
           title: string;
         };
         Insert: {
+          color?: string;
           created_at?: string;
           id?: string;
           title: string;
         };
         Update: {
+          color?: string;
           created_at?: string;
           id?: string;
           title?: string;

@@ -1,4 +1,4 @@
-export type KanbanBoard = KanbanList[];
+// export type KanbanBoard = KanbanList[];
 
 export enum ColorsColumn {
   gray = 'gray',
@@ -13,14 +13,14 @@ export enum ColorsColumn {
 
 export type ColorsColumnType = keyof typeof ColorsColumn;
 
-export type KanbanList = {
-  id: string;
-  title: string;
-  cards: KanbanCard[];
-  color: ColorsColumnType;
-};
+// export type KanbanList = {
+//   id: string;
+//   title: string;
+//   cards: KanbanCard[];
+//   color: ColorsColumnType;
+// };
 
-export type KanbanCard = {
-  id: string;
-  title: string;
-};
+// export type KanbanCard = {
+//   id: string;
+//   title: string;
+// };

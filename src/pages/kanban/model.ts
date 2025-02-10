@@ -1,48 +1,57 @@
 import { cardMove, listReorder } from '@/lib/utils';
-import { createEvent, createStore } from 'effector';
+import { Card, List, api } from '@/shared/api';
+import { createEffect, createEvent, createStore, sample } from 'effector';
+import { createGate } from 'effector-react';
 import { nanoid } from 'nanoid';
 
-import { ColorsColumnType, KanbanBoard, KanbanCard } from './types';
+import { ColorsColumnType } from './types';
 
-const TASK_NAMES = [
-  'Set up development environment',
-  // Here 48 more available task names
-  'Add task grouping by category functionality',
-];
+/**
+ * Gate это объект позволяющий мониторить состояние какого-либо компонента.
+ * Кроме отслеживания .open и .close событий, он позволяет передавать данные из компонентов в модель effector.
+ */
+export const PageGate = createGate();
 
-function randomTaskName() {
-  return TASK_NAMES[Math.floor(Math.random() * TASK_NAMES.length)];
-}
+// const TASK_NAMES = [
+//   'Set up development environment',
+//   // Here 48 more available task names
+//   'Add task grouping by category functionality',
+// ];
 
-function createRandomTaskList(amount: number): KanbanCard[] {
-  return Array.from({ length: amount }, () => ({ id: nanoid(), title: randomTaskName() }));
-}
+// function randomTaskName() {
+//   return TASK_NAMES[Math.floor(Math.random() * TASK_NAMES.length)];
+// }
 
-const INITIAL_BOARD: KanbanBoard = [
-  {
-    id: nanoid(),
-    title: 'To Do',
-    cards: createRandomTaskList(10),
-    color: 'gray',
-  },
-  {
-    id: nanoid(),
-    title: 'In Progress',
-    cards: createRandomTaskList(1),
-    color: 'gray',
-  },
-  {
-    id: nanoid(),
-    title: 'Done',
-    cards: createRandomTaskList(30),
-    color: 'gray',
-  },
-];
+// function createRandomTaskList(amount: number): KanbanCard[] {
+//   return Array.from({ length: amount }, () => ({ id: nanoid(), title: randomTaskName() }));
+// }
 
-export type KanbanCardForm = Pick<KanbanCard, 'title'>;
+// const INITIAL_BOARD: KanbanBoard = [
+//   {
+//     id: nanoid(),
+//     title: 'To Do',
+//     cards: createRandomTaskList(10),
+//     color: 'gray',
+//   },
+//   {
+//     id: nanoid(),
+//     title: 'In Progress',
+//     cards: createRandomTaskList(1),
+//     color: 'gray',
+//   },
+//   {
+//     id: nanoid(),
+//     title: 'Done',
+//     cards: createRandomTaskList(30),
+//     color: 'gray',
+//   },
+// ];
+
 // Events
+export type KanbanCardForm = { title: string };
+
 export const cardCreateClicked = createEvent<{ card: KanbanCardForm; columnId: string }>();
-export const boardUpdate = createEvent<KanbanBoard>();
+export const boardUpdate = createEvent<BoardList[]>();
 export const boardUpdatedColor = createEvent<{ columnId: string; color: ColorsColumnType }>();
 export const cardEditClicked = createEvent<{
   columnId: string;
@@ -57,11 +66,55 @@ export const cardMoved = createEvent<{
   toIndex: number;
 }>();
 
+// effects
+export type BoardList = List & { cards: Pick<Card, 'id' | 'title'>[] };
+export const boardLoadFx = createEffect<void, BoardList[]>(async () => {
+  const [lists, cards] = await Promise.all([api.kanban.listLoadFx(), api.kanban.cardsLoadFx()]);
+
+  return lists.map((list) => ({
+    ...list,
+    cards: cards.filter((card) => card.list_id === list.id),
+  }));
+});
+
+const boardInitializeFx = createEffect(async () => {
+  const lists = await Promise.all([
+    api.kanban.listCreateFx({ title: 'To Do' }),
+    api.kanban.listCreateFx({ title: 'In Progress' }),
+    api.kanban.listCreateFx({ title: 'Done' }),
+  ]);
+  return lists.filter((list) => list !== null);
+});
+
 // Stores
 // export const $board = createStore<KanbanBoard>(INITIAL_BOARD);
-export const $board = createStore<KanbanBoard>([]);
+export const $board = createStore<BoardList[]>([]);
 
 // Logic
+
+sample({
+  clock: PageGate.open,
+  target: boardLoadFx,
+});
+
+$board.on(boardLoadFx.doneData, (_, board) => board);
+
+/**
+ * Этот sample стоит читать так:
+ * - Когда завершится загрузка доски
+ * - Если нет списков на доске
+ * - Запустить инициализацию доски
+ */
+
+sample({
+  clock: boardLoadFx.doneData,
+  source: $board,
+  filter: (board) => board.length === 0,
+  target: boardInitializeFx,
+});
+
+$board.on(boardInitializeFx.doneData, (_, board) => board.map((list) => ({ ...list, cards: [] })));
+
 $board.on(boardUpdate, (_, board) => board);
 
 // board prev state
@@ -110,6 +163,7 @@ $board.on(boardUpdatedColor, (board, { columnId, color }) => {
     }
     return column;
   });
+
   return updatedBoard;
 });
 

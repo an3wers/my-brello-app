@@ -5,3 +5,4 @@
 import * as kanban from './rest/kanban';
 
 export const api = { kanban };
+export type { Card, List } from './rest/kanban';

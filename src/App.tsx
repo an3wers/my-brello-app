@@ -3,7 +3,7 @@ import { AppHeader } from '@/components/AppHeader/AppHeader';
 import { AppTitle } from './components/AppTitle/AppTitle';
 import { Container } from './components/ui/container';
 import { cn } from './lib/utils';
-import { Board } from './pages/kanban/ui/Board';
+import { Board } from './pages/kanban/view';
 
 function App() {
   return (

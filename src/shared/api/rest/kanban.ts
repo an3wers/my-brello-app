@@ -36,6 +36,11 @@ export const listLoadFx = createEffect<void, List[], PostgrestError>(async () =>
   return data ?? [];
 });
 
+export const listCreateFx = createEffect<ListCreate, List | null, PostgrestError>(async (list) => {
+  const { data } = await client.from('lists').insert(list).select('*').single().throwOnError();
+  return data ?? null;
+});
+
 export type Card = Tables<'cards'>;
 export type CardID = Card['id'];
 export type CardCreate = Omit<Card, 'id' | 'created_at'>;

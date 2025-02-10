@@ -1,10 +1,10 @@
 import { cn } from '@/lib/utils';
-import { $board, cardMoved } from '@/pages/kanban/model';
+import { $board, PageGate, cardMoved } from '@/pages/kanban/model';
 import { DragDropContext, OnDragEndResponder } from '@hello-pangea/dnd';
-import { useUnit } from 'effector-react';
+import { useGate, useUnit } from 'effector-react';
 
-import { Container } from '../../../components/ui/container';
-import { KanbanColumn } from './KanbanColumn';
+import { Container } from '../../components/ui/container';
+import { KanbanColumn } from './ui/KanbanColumn';
 
 interface BoardProps {
   className?: string;
@@ -12,6 +12,12 @@ interface BoardProps {
 
 export const Board = ({ className }: BoardProps) => {
   const [board, onCardMoved] = useUnit([$board, cardMoved]);
+
+  /**
+   * Gate это объект позволяющий мониторить состояние какого-либо компонента.
+   * Кроме отслеживания .open и .close событий, он позволяет передавать данные из компонентов в модель effector.
+   */
+  useGate(PageGate);
 
   const onDragEnd: OnDragEndResponder = ({ source, destination }) => {
     if (!destination) {

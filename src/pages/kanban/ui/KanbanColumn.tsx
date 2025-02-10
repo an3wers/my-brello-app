@@ -1,8 +1,12 @@
 import { useState } from 'react';
 
 import { cn, getColumnColors } from '@/lib/utils';
-import { KanbanCardForm, boardUpdatedColor, cardCreateClicked } from '@/pages/kanban/model';
-import type { KanbanList } from '@/pages/kanban/types';
+import {
+  BoardList,
+  KanbanCardForm,
+  boardUpdatedColor,
+  cardCreateClicked,
+} from '@/pages/kanban/model';
 import { Droppable } from '@hello-pangea/dnd';
 import { useUnit } from 'effector-react';
 import { CirclePlus, EllipsisVertical } from 'lucide-react';
@@ -20,7 +24,7 @@ import { KanbanCard } from './KanbanCard';
 import { KanbanCreateCard } from './KanbanCreateCard';
 import stylesBoard from './board.module.css';
 
-interface KanbanColumnProps extends KanbanList {
+interface KanbanColumnProps extends Omit<BoardList, 'created_at'> {
   className?: string;
   children?: React.ReactNode;
 }

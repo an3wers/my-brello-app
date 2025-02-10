@@ -1,4 +1,5 @@
-import { ColorsColumn, KanbanBoard, KanbanList } from '@/pages/kanban/types';
+import { BoardList } from '@/pages/kanban/model';
+import { ColorsColumn } from '@/pages/kanban/types';
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -7,12 +8,12 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function cardMove(
-  board: KanbanBoard,
+  board: BoardList[],
   sourceColumnId: string,
   destinationColumnId: string,
   fromIndex: number,
   toIndex: number,
-): KanbanBoard {
+): BoardList[] {
   const sourceColumnIndex = board.findIndex((column) => column.id === sourceColumnId);
   const destinationColumnIndex = board.findIndex((column) => column.id === destinationColumnId);
 
@@ -48,7 +49,7 @@ export function cardMove(
   });
 }
 
-export function listReorder(list: KanbanList, startIndex: number, endIndex: number): KanbanList {
+export function listReorder(list: BoardList, startIndex: number, endIndex: number): BoardList {
   const cards = Array.from(list.cards);
   const [removed] = cards.splice(startIndex, 1);
   cards.splice(endIndex, 0, removed);

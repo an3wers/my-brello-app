@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 import { cn } from '@/lib/utils';
 import { cardDeleteClicked, cardEditClicked } from '@/pages/kanban/model';
-import type { KanbanCard as KanbanCardType } from '@/pages/kanban/types';
+import { Card as CardType } from '@/shared/api';
 import { Draggable } from '@hello-pangea/dnd';
 import { useUnit } from 'effector-react';
 import { Pencil, Trash } from 'lucide-react';
@@ -11,7 +11,7 @@ import { Button } from '../../../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
 import { Textarea } from '../../../components/ui/textarea';
 
-interface KanbanCardProps extends KanbanCardType {
+interface KanbanCardProps extends Pick<CardType, 'id' | 'title'> {
   className?: string;
   index: number;
   columnId: string;
