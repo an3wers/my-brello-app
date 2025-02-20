@@ -1,10 +1,10 @@
 import { useState } from 'react';
 
 import { cn } from '@/lib/utils';
-import { cardDeleteClicked, cardEditClicked } from '@/pages/kanban/model';
+import { $cardsPendingMap, cardDeleteClicked, cardEditClicked } from '@/pages/kanban/model';
 import { Card as CardType } from '@/shared/api';
 import { Draggable } from '@hello-pangea/dnd';
-import { useUnit } from 'effector-react';
+import { useStoreMap, useUnit } from 'effector-react';
 import { Pencil, Trash } from 'lucide-react';
 
 import { Button } from '../../../components/ui/button';
@@ -14,13 +14,19 @@ import { Textarea } from '../../../components/ui/textarea';
 interface KanbanCardProps extends Pick<CardType, 'id' | 'title'> {
   className?: string;
   index: number;
-  columnId: string;
+  listId: string;
 }
-export const KanbanCard = ({ className, title, index, id, columnId }: KanbanCardProps) => {
+export const KanbanCard = ({ className, title, index, id, listId }: KanbanCardProps) => {
   const [onCardEdit, onCardDelete] = useUnit([cardEditClicked, cardDeleteClicked]);
 
   const [editTitle, setEditTitle] = useState(title);
   const [editMode, setEditMode] = useState(false);
+
+  const disabled = useStoreMap({
+    store: $cardsPendingMap,
+    keys: [id],
+    fn: (pendingMap, [id]) => pendingMap[id] ?? false,
+  });
 
   function onReset() {
     setEditTitle(title);
@@ -28,7 +34,7 @@ export const KanbanCard = ({ className, title, index, id, columnId }: KanbanCard
   }
 
   function onEditFinished() {
-    onCardEdit({ columnId, cardId: id, card: { title: editTitle } });
+    onCardEdit({ listId, cardId: id, card: { title: editTitle } });
     onReset();
   }
 
@@ -56,7 +62,12 @@ export const KanbanCard = ({ className, title, index, id, columnId }: KanbanCard
             ref={provided.innerRef}
             {...provided.draggableProps}
             {...provided.dragHandleProps}
-            className={cn('', snapshot.isDragging ? 'border-gray-800 shadow-lg' : null, className)}
+            className={cn(
+              '',
+              disabled && ' opacity-50, pointer-events-none',
+              snapshot.isDragging ? 'border-gray-800 shadow-lg' : null,
+              className,
+            )}
           >
             <CardHeader>
               <CardTitle className="text-sm">{title}</CardTitle>
@@ -69,7 +80,7 @@ export const KanbanCard = ({ className, title, index, id, columnId }: KanbanCard
                 <Button
                   size={'icon'}
                   variant={'ghost'}
-                  onClick={() => onCardDelete({ columnId, cardId: id })}
+                  onClick={() => onCardDelete({ listId, cardId: id })}
                 >
                   <Trash className="text-gray-400" />
                 </Button>

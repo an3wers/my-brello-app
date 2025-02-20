@@ -19,18 +19,19 @@ export const Board = ({ className }: BoardProps) => {
    */
   useGate(PageGate);
 
-  const onDragEnd: OnDragEndResponder = ({ source, destination }) => {
+  const onDragEnd: OnDragEndResponder = ({ source, destination, draggableId }) => {
     if (!destination) {
       // Dropped outside of a column
       return;
     }
 
-    const fromColumnId = source.droppableId;
-    const toColumnId = destination.droppableId;
+    const cardId = draggableId;
+    const fromListId = source.droppableId;
+    const toListId = destination.droppableId;
     const fromIndex = source.index;
     const toIndex = destination.index;
 
-    onCardMoved({ fromColumnId, toColumnId, fromIndex, toIndex });
+    onCardMoved({ cardId, fromListId, toListId, fromIndex, toIndex });
   };
 
   return (
@@ -45,6 +46,7 @@ export const Board = ({ className }: BoardProps) => {
                 cards={column.cards}
                 key={column.id}
                 color={column.color}
+                sort_order={column.sort_order}
               />
             ))}
           </div>

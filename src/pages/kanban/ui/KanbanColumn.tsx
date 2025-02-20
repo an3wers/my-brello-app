@@ -1,12 +1,7 @@
 import { useState } from 'react';
 
 import { cn, getColumnColors } from '@/lib/utils';
-import {
-  BoardList,
-  KanbanCardForm,
-  boardUpdatedColor,
-  cardCreateClicked,
-} from '@/pages/kanban/model';
+import { KanbanCardForm, KanbanList, cardCreateClicked } from '@/pages/kanban/model';
 import { Droppable } from '@hello-pangea/dnd';
 import { useUnit } from 'effector-react';
 import { CirclePlus, EllipsisVertical } from 'lucide-react';
@@ -24,18 +19,18 @@ import { KanbanCard } from './KanbanCard';
 import { KanbanCreateCard } from './KanbanCreateCard';
 import stylesBoard from './board.module.css';
 
-interface KanbanColumnProps extends Omit<BoardList, 'created_at'> {
+interface KanbanColumnProps extends Omit<KanbanList, 'created_at'> {
   className?: string;
   children?: React.ReactNode;
 }
 
 export const KanbanColumn = ({ className, title, cards, id, color }: KanbanColumnProps) => {
-  const [onCreateCard, onUpdateColor] = useUnit([cardCreateClicked, boardUpdatedColor]);
+  const [onCreateCard] = useUnit([cardCreateClicked]);
 
   const [hasAddCard, setHasAddCard] = useState(false);
 
   function onCardCreate(card: KanbanCardForm) {
-    onCreateCard({ card, columnId: id });
+    onCreateCard({ card, listId: id });
     setHasAddCard(false);
   }
 
@@ -69,7 +64,7 @@ export const KanbanColumn = ({ className, title, cards, id, color }: KanbanColum
                         {getColumnColors().map((color) => {
                           return (
                             <span
-                              onClick={() => onUpdateColor({ columnId: id, color })}
+                              onClick={() => {}}
                               key={color}
                               className={cn(
                                 'h-4 w-4 rounded-full border inline-block mr-2 bg-opacity-60 cursor-pointer',
@@ -101,10 +96,8 @@ export const KanbanColumn = ({ className, title, cards, id, color }: KanbanColum
                 {hasAddCard && (
                   <KanbanCreateCard onCreate={onCardCreate} onCancel={() => setHasAddCard(false)} />
                 )}
-                {cards.map(({ id: _id, title }, index) => {
-                  return (
-                    <KanbanCard key={_id} index={index} title={title} id={_id} columnId={id} />
-                  );
+                {cards.map(({ id: _id, title }: { id: string; title: string }, index: number) => {
+                  return <KanbanCard key={_id} index={index} title={title} id={_id} listId={id} />;
                 })}
                 {provided.placeholder}
               </div>

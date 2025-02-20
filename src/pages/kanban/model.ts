@@ -1,75 +1,53 @@
-import { cardMove, listReorder } from '@/lib/utils';
-import { Card, List, api } from '@/shared/api';
+import { api } from '@/shared/api';
+import { CardUpdate } from '@/shared/api/rest/kanban';
 import { createEffect, createEvent, createStore, sample } from 'effector';
 import { createGate } from 'effector-react';
 import { nanoid } from 'nanoid';
 
-import { ColorsColumnType } from './types';
+export type KanbanList = {
+  id: string;
+  title: string;
+  sort_order: number;
+  color: string;
+  cards: KanbanCard[];
+};
 
-/**
- * Gate это объект позволяющий мониторить состояние какого-либо компонента.
- * Кроме отслеживания .open и .close событий, он позволяет передавать данные из компонентов в модель effector.
- */
+export type KanbanCard = {
+  id: string;
+  title: string;
+  sort_order: number;
+};
+
+export type CardId = KanbanCard['id'];
+
+export type KanbanCardForm = Pick<KanbanCard, 'title'>;
+
+export type KanbanBoard = KanbanList[];
+
 export const PageGate = createGate();
 
-// const TASK_NAMES = [
-//   'Set up development environment',
-//   // Here 48 more available task names
-//   'Add task grouping by category functionality',
-// ];
-
-// function randomTaskName() {
-//   return TASK_NAMES[Math.floor(Math.random() * TASK_NAMES.length)];
-// }
-
-// function createRandomTaskList(amount: number): KanbanCard[] {
-//   return Array.from({ length: amount }, () => ({ id: nanoid(), title: randomTaskName() }));
-// }
-
-// const INITIAL_BOARD: KanbanBoard = [
-//   {
-//     id: nanoid(),
-//     title: 'To Do',
-//     cards: createRandomTaskList(10),
-//     color: 'gray',
-//   },
-//   {
-//     id: nanoid(),
-//     title: 'In Progress',
-//     cards: createRandomTaskList(1),
-//     color: 'gray',
-//   },
-//   {
-//     id: nanoid(),
-//     title: 'Done',
-//     cards: createRandomTaskList(30),
-//     color: 'gray',
-//   },
-// ];
-
-// Events
-export type KanbanCardForm = { title: string };
-
-export const cardCreateClicked = createEvent<{ card: KanbanCardForm; columnId: string }>();
-export const boardUpdate = createEvent<BoardList[]>();
-export const boardUpdatedColor = createEvent<{ columnId: string; color: ColorsColumnType }>();
+export const cardCreateClicked = createEvent<{ card: KanbanCardForm; listId: string }>();
 export const cardEditClicked = createEvent<{
-  columnId: string;
+  listId: string;
   cardId: string;
   card: KanbanCardForm;
 }>();
-export const cardDeleteClicked = createEvent<{ columnId: string; cardId: string }>();
+export const cardDeleteClicked = createEvent<{ listId: string; cardId: string }>();
 export const cardMoved = createEvent<{
-  fromColumnId: string;
-  toColumnId: string;
+  fromListId: string;
+  toListId: string;
   fromIndex: number;
   toIndex: number;
+  cardId: string;
 }>();
 
-// effects
-export type BoardList = List & { cards: Pick<Card, 'id' | 'title'>[] };
-export const boardLoadFx = createEffect<void, BoardList[]>(async () => {
-  const [lists, cards] = await Promise.all([api.kanban.listLoadFx(), api.kanban.cardsLoadFx()]);
+export const $board = createStore<KanbanBoard>([]);
+export const $cardsPendingMap = createStore<Record<CardId, boolean>>({});
+
+/** Load lists and cards from db */
+
+const boardLoadFx = createEffect(async () => {
+  const [lists, cards] = await Promise.all([api.kanban.listsLoadFx(), api.kanban.cardsLoadFx()]);
 
   return lists.map((list) => ({
     ...list,
@@ -77,34 +55,37 @@ export const boardLoadFx = createEffect<void, BoardList[]>(async () => {
   }));
 });
 
-const boardInitializeFx = createEffect(async () => {
-  const lists = await Promise.all([
-    api.kanban.listCreateFx({ title: 'To Do' }),
-    api.kanban.listCreateFx({ title: 'In Progress' }),
-    api.kanban.listCreateFx({ title: 'Done' }),
-  ]);
-  return lists.filter((list) => list !== null);
-});
-
-// Stores
-// export const $board = createStore<KanbanBoard>(INITIAL_BOARD);
-export const $board = createStore<BoardList[]>([]);
-
-// Logic
-
 sample({
   clock: PageGate.open,
   target: boardLoadFx,
 });
 
-$board.on(boardLoadFx.doneData, (_, board) => board);
+$board.on(boardLoadFx.doneData, (_, board) => {
+  return board.map((list) => {
+    return {
+      id: list.id,
+      title: list.title,
+      sort_order: list.sort_order,
+      color: list.color,
+      cards: list.cards.map((card) => ({
+        id: card.id,
+        title: card.title,
+        sort_order: card.sort_order,
+      })),
+    };
+  });
+});
 
-/**
- * Этот sample стоит читать так:
- * - Когда завершится загрузка доски
- * - Если нет списков на доске
- * - Запустить инициализацию доски
- */
+/** Create initial lists if there are none */
+
+const boardInitializeFx = createEffect(async () => {
+  const lists = await Promise.all([
+    api.kanban.listsCreateFx({ title: 'To Do', sort_order: 1000 }),
+    api.kanban.listsCreateFx({ title: 'In Progress', sort_order: 2000 }),
+    api.kanban.listsCreateFx({ title: 'Done', sort_order: 3000 }),
+  ]);
+  return lists.filter((list) => list !== null);
+});
 
 sample({
   clock: boardLoadFx.doneData,
@@ -113,80 +94,310 @@ sample({
   target: boardInitializeFx,
 });
 
-$board.on(boardInitializeFx.doneData, (_, board) => board.map((list) => ({ ...list, cards: [] })));
+$board.on(boardInitializeFx.doneData, (_, board) =>
+  board.map((list) => ({
+    id: list.id,
+    title: list.title,
+    sort_order: list.sort_order,
+    color: list.color,
+    cards: [],
+  })),
+);
 
-$board.on(boardUpdate, (_, board) => board);
+/** Create new card */
 
-// board prev state
-// { card, columnId } - payload
-$board.on(cardCreateClicked, (board, { card, columnId }) => {
-  const updateBoard = board.map((column) => {
-    if (column.id === columnId) {
-      const newCard = { ...card, id: nanoid() };
+const cardCreated = createEvent<{ card: KanbanCard; listId: string }>();
 
-      return { ...column, cards: [...column.cards, newCard] };
+sample({
+  clock: cardCreateClicked,
+  source: $board,
+  fn: (board, { card, listId }) => {
+    const targetList = board.find((list) => list.id === listId);
+
+    let sortOrder = 10_000;
+    if (targetList && targetList.cards.length > 0) {
+      const maxSortOrder = Math.max(...targetList.cards.map((card) => card.sort_order));
+      sortOrder = maxSortOrder + 1000;
     }
-    return column;
-  });
 
-  return updateBoard;
+    return { card: { ...card, id: nanoid(), sort_order: sortOrder }, listId };
+  },
+  target: cardCreated,
 });
 
-$board.on(cardEditClicked, (board, { card, cardId, columnId }) => {
-  const updateBoard = board.map((column) => {
-    if (column.id === columnId) {
-      const updatedCards = column.cards.map((c) => (c.id === cardId ? { ...c, ...card } : c));
-      return { ...column, cards: updatedCards };
+$board.on(cardCreated, (board, { card, listId }) => {
+  const updatedBoard = board.map((list) => {
+    if (list.id === listId) {
+      return { ...list, cards: [...list.cards, card] };
     }
-    return column;
-  });
 
-  return updateBoard;
+    return list;
+  });
+  return updatedBoard;
 });
 
-$board.on(cardDeleteClicked, (board, { cardId, columnId }) => {
-  const updateBoard = board.map((column) => {
-    if (column.id === columnId) {
-      const updatedCards = column.cards.filter((c) => c.id !== cardId);
-      return { ...column, cards: updatedCards };
-    }
-    return column;
-  });
+const cardSaveFx = createEffect(
+  async ({ card: { id: _, ...card }, listId }: { card: KanbanCard; listId: string }) => {
+    return await api.kanban.cardsCreateFx({ ...card, list_id: listId });
+  },
+);
 
-  return updateBoard;
+sample({
+  clock: cardCreated,
+  target: cardSaveFx,
 });
 
-$board.on(boardUpdatedColor, (board, { columnId, color }) => {
-  const updatedBoard = board.map((column) => {
-    if (column.id === columnId) {
-      return { ...column, color };
+$cardsPendingMap.on(cardSaveFx, (pendingMap, { card }) => ({
+  ...pendingMap,
+  [card.id]: true,
+}));
+
+const cardSavedSuccess = createEvent<{ originalId: string; card: KanbanCard; listId: string }>();
+const cardSavedError = createEvent<{ originalId: string; listId: string }>();
+
+sample({
+  clock: cardSaveFx.done,
+  filter: ({ result }) => result !== null,
+  fn: ({ params, result: card }) => ({
+    originalId: params.card.id,
+    card: {
+      id: card!.id,
+      title: card!.title,
+      sort_order: card!.sort_order,
+    },
+    listId: params.listId,
+  }),
+  target: cardSavedSuccess,
+});
+
+sample({
+  clock: [cardSaveFx.fail, cardSaveFx.done.filter({ fn: ({ result }) => result === null })],
+  fn: ({ params }) => ({ originalId: params.card.id, listId: params.listId }),
+  target: cardSavedError,
+});
+
+$cardsPendingMap.on(cardSaveFx.finally, (pendingMap, { params: { card } }) => {
+  const updatedPendingMap = { ...pendingMap };
+  delete updatedPendingMap[card.id];
+  return updatedPendingMap;
+});
+
+$board.on(cardSavedSuccess, (board, { originalId, card, listId }) => {
+  return board.map((list) => {
+    if (list.id === listId) {
+      return {
+        ...list,
+        cards: list.cards.map((found) => (found.id === originalId ? card : found)),
+      };
     }
-    return column;
+
+    return list;
+  });
+});
+
+$board.on(cardSavedError, (board, { originalId, listId }) => {
+  return board.map((list) => {
+    if (list.id === listId) {
+      return {
+        ...list,
+        cards: list.cards.filter((found) => found.id !== originalId),
+      };
+    }
+
+    return list;
+  });
+});
+
+/** Delete card */
+const cardDeleteFx = createEffect(async ({ cardId }: { cardId: string }) => {
+  await api.kanban.cardsDeleteFx({ cardId });
+});
+
+sample({
+  clock: cardDeleteClicked,
+  target: cardDeleteFx,
+});
+
+$cardsPendingMap.on(cardDeleteFx, (cardsPendingMap, { cardId }) => ({
+  ...cardsPendingMap,
+  [cardId]: true,
+}));
+
+$board.on(cardDeleteFx.done, (board, { params: { cardId } }) => {
+  const updatedBoard = board.map((list) => {
+    const updatedCards = list.cards.filter((card) => card.id !== cardId);
+    if (updatedCards.length === list.cards.length) {
+      return list;
+    }
+
+    return {
+      ...list,
+      cards: updatedCards,
+    };
   });
 
   return updatedBoard;
 });
 
-const cardMovedInTheColumn = cardMoved.filter({
-  fn: ({ fromColumnId, toColumnId }) => fromColumnId === toColumnId,
-});
-const cardMovedToAnotherColumn = cardMoved.filter({
-  fn: ({ fromColumnId, toColumnId }) => fromColumnId !== toColumnId,
+$cardsPendingMap.on(cardDeleteFx.finally, (pendingMap, { params: { cardId } }) => {
+  const updatedPendingMap = { ...pendingMap };
+  delete updatedPendingMap[cardId];
+  return updatedPendingMap;
 });
 
-$board.on(cardMovedInTheColumn, (board, { fromColumnId, fromIndex, toIndex }) => {
-  const updatedBoard = board.map((column) => {
-    if (column.id === fromColumnId) {
-      const updatedList = listReorder(column, fromIndex, toIndex);
-      return updatedList;
+/** Edit card */
+
+const cardEditFx = createEffect(
+  async ({ cardId, card }: { cardId: string; card: Partial<CardUpdate> }) => {
+    return await api.kanban.cardsUpdateFx({ ...card, id: cardId });
+  },
+);
+
+sample({
+  clock: cardEditClicked,
+  target: cardEditFx,
+});
+
+$cardsPendingMap.on(cardEditFx, (pendingMap, { cardId }) => ({
+  ...pendingMap,
+  [cardId]: true,
+}));
+
+$board.on(cardEditFx.done, (board, { params: { cardId }, result: card }) => {
+  if (!card) return board;
+
+  const updatedBoard = board.map((list) => {
+    if (list.id === card.list_id) {
+      const updatedCards = list.cards.map((existingCard) => {
+        if (existingCard.id === cardId) {
+          return { ...existingCard, ...card };
+        }
+
+        return existingCard;
+      });
+
+      return { ...list, cards: updatedCards };
     }
 
-    return column;
+    return list;
   });
 
   return updatedBoard;
 });
 
-$board.on(cardMovedToAnotherColumn, (board, { fromColumnId, toColumnId, fromIndex, toIndex }) => {
-  return cardMove(board, fromColumnId, toColumnId, fromIndex, toIndex);
+$cardsPendingMap.on(cardEditFx.finally, (pendingMap, { params: { cardId } }) => {
+  const updatedPendingMap = { ...pendingMap };
+  delete updatedPendingMap[cardId];
+  return updatedPendingMap;
 });
+
+/** Card moving between lists and reordering in the same list */
+
+const cardMovedWithOrder = createEvent<{
+  cardId: string;
+  toListId: string;
+  toIndex: number;
+  fromListId: string;
+  fromIndex: number;
+  sortOrder: number;
+}>();
+
+sample({
+  clock: cardMoved,
+  source: $board,
+  fn: (board, { cardId, toListId, toIndex, ...rest }) => {
+    const targetList = board.find((list) => list.id === toListId);
+    const sortOrder = orderBetween(targetList?.cards[toIndex - 1], targetList?.cards[toIndex]);
+
+    return { cardId, toListId, toIndex, sortOrder, ...rest };
+  },
+  target: cardMovedWithOrder,
+});
+
+sample({
+  clock: cardMovedWithOrder,
+  fn: ({ cardId, toListId, sortOrder }) => ({
+    cardId,
+    card: { list_id: toListId, sort_order: sortOrder },
+  }),
+  target: cardEditFx,
+});
+
+const cardMovedInTheList = cardMovedWithOrder.filter({
+  fn: ({ fromListId, toListId }) => fromListId === toListId,
+});
+const cardMovedToAnotherList = cardMovedWithOrder.filter({
+  fn: ({ fromListId, toListId }) => fromListId !== toListId,
+});
+
+/** Change status of the card, move to another list */
+
+$board.on(cardMovedToAnotherList, (board, { fromListId, toListId, fromIndex, toIndex }) => {
+  return cardMove(board, fromListId, toListId, fromIndex, toIndex);
+});
+
+/** Card reorder */
+
+$board.on(cardMovedInTheList, (board, { fromListId, fromIndex, toIndex }) => {
+  return board.map((list) => {
+    if (list.id === fromListId) return listReorder(list, fromIndex, toIndex);
+
+    return list;
+  });
+});
+
+function cardMove(
+  board: KanbanBoard,
+  sourceListId: string,
+  destinationListId: string,
+  fromIndex: number,
+  toIndex: number,
+): KanbanBoard {
+  const sourceListIndex = board.findIndex((list) => list.id === sourceListId);
+  const destinationListIndex = board.findIndex((list) => list.id === destinationListId);
+
+  const sourceList = board[sourceListIndex];
+  const destinationList = board[destinationListIndex];
+
+  const card = sourceList.cards[fromIndex];
+
+  const updatedSourceList = {
+    ...sourceList,
+    cards: sourceList.cards.filter((_, index) => index !== fromIndex),
+  };
+  const updatedDestinationList = {
+    ...destinationList,
+    cards: [
+      ...destinationList.cards.slice(0, toIndex),
+      { ...card },
+      ...destinationList.cards.slice(toIndex),
+    ],
+  };
+
+  return board.map((list) => {
+    if (list.id === sourceListId) {
+      return updatedSourceList;
+    }
+
+    if (list.id === destinationListId) {
+      return updatedDestinationList;
+    }
+
+    return list;
+  });
+}
+
+function orderBetween(previous?: { sort_order: number }, next?: { sort_order: number }): number {
+  if (previous && next) return (previous.sort_order + next.sort_order) / 2;
+  if (next) return next.sort_order - 1000;
+  if (previous) return previous.sort_order + 1000;
+  return 10_000;
+}
+
+function listReorder(list: KanbanList, startIndex: number, endIndex: number): KanbanList {
+  const cards = Array.from(list.cards);
+  const [removed] = cards.splice(startIndex, 1);
+  cards.splice(endIndex, 0, removed);
+
+  return { ...list, cards };
+}
